@@ -37,7 +37,8 @@ public class BinarySearchTree {
         while(CONTINUE){
             CONTINUE = commandLoop(scanner);
             System.out.print("In-order: ");
-            printInOrder(root);
+            if(root != null) printInOrder(root);
+            else System.out.println("Tree is empty ! (:");
         }
     }
     
@@ -86,17 +87,39 @@ public class BinarySearchTree {
                        );
                        break;
                    }
+                   if(root==null) root = new Node();
                    insert(input,root);
                }
                break;
            case "D":
                if(scan.hasNextInt()){
-                   delete(new Integer(scan.nextInt()));
+                   Integer input = scan.nextInt();
+                   if(findNode(input,root)== null){
+                       System.out.println(input + " is not in the tree");
+                       break;
+                   }
+                   delete(input);
                }
                break;
            case "P":
+               if(scan.hasNextInt()){
+                   Integer input = scan.nextInt();
+                   if(findNode(input,root)==null){
+                       System.out.println(input + "is not in the tree");
+                       break;
+                   }
+                   System.out.println("Predecessor is " +  findPredecessor(findNode(input,root)).data);
+               }
                break;
            case "S":
+               if(scan.hasNextInt()){
+                   Integer input = scan.nextInt();
+                   if(findNode(input,root)==null){
+                       System.out.println(input + "is not in the tree");
+                       break;
+                   }
+                   System.out.println("Successor is " +  findSuccessor(findNode(input,root)).data);
+               }
                break;
            case "E":
                return false;
@@ -122,42 +145,85 @@ public class BinarySearchTree {
 
     private static void delete(Integer input) { 
        Node toDelete = findNode(input, root);
-       System.out.println(toDelete.data);
+       
        if(toDelete.left !=null && toDelete.right!=null){
            //2 children
-           
-           
+           Node lowestRight = findLowestChild(toDelete.right);
+           System.out.println("lowest right" + lowestRight.data);
+           if(lowestRight.right==null){
+               
+               
+               toDelete.data = lowestRight.data;
+               
+               if(lowestRight.parent.right == lowestRight){
+                   
+                   lowestRight.parent.right=null;
+               }else{
+                   
+                   lowestRight.parent.left=null;
+               }
+           }else{
+               //lowest in right column has right child
+               
+               toDelete.data = lowestRight.data;
+               if(lowestRight.parent.right == lowestRight){
+                   lowestRight.right.parent = lowestRight.parent;
+                   lowestRight.parent.right = lowestRight.right;
+               }else{
+                   lowestRight.right.parent = lowestRight.parent;
+                   lowestRight.parent.left = lowestRight.right;
+               }
+           }
            
        }else if(toDelete.left != null){
            //to Delete has a left child
-           if(toDelete.parent.left == toDelete){
-               //toDelete is a left node
-               toDelete.parent.left = toDelete.left;
-           }else if(toDelete.parent.right == toDelete){
-               //toDelete is a right node
-               toDelete.parent.right = toDelete.left;
-           }
+           if(toDelete.parent == null){
+               root = toDelete.left;
+               root.parent=null;
+           }else{
+
+                toDelete.left.parent = toDelete.parent;
+                if(toDelete.parent.left == toDelete){
+                    //toDelete is a left node
+                    toDelete.parent.left = toDelete.left;
+                }else if(toDelete.parent.right == toDelete){
+                    //toDelete is a right node
+                    toDelete.parent.right = toDelete.left;
+                }
+            }
            
        }else if(toDelete.right != null){
            //to Delete has a right child
-           if(toDelete.parent.left == toDelete){
-               //toDelete is a left node
-               toDelete.parent.left = toDelete.right;
-           }else if(toDelete.parent.right == toDelete){
-               //toDelete is a right node
-               toDelete.parent.right = toDelete.right;
-           }
+            if(toDelete.parent == null){
+               root = toDelete.right;
+               root.parent=null;
+           }else{
+                
+                toDelete.right.parent = toDelete.parent;
+                if(toDelete.parent.left == toDelete){
+                    //toDelete is a left node
+                    toDelete.parent.left = toDelete.right;
+                }else if(toDelete.parent.right == toDelete){
+                    //toDelete is a right node
+                    toDelete.parent.right = toDelete.right;
+                }
+            }
        }else{
            
-           
+           if(root==toDelete){
+               System.out.println("deleted root!");
+               root =null;
+           }else{
+               
+                if(toDelete.parent.left == toDelete){
+                     //toDelete is a left node
+                     toDelete.parent.left = null;
+                 }else if(toDelete.parent.right == toDelete){
+                     //toDelete is a right node
+                     toDelete.parent.right = null;
+                } 
+           }
            //no children
-          if(toDelete.parent.left == toDelete){
-               //toDelete is a left node
-               toDelete.parent.left = null;
-           }else if(toDelete.parent.right == toDelete){
-               //toDelete is a right node
-               toDelete.parent.right = null;
-          } 
        }
     }
 
@@ -176,5 +242,59 @@ public class BinarySearchTree {
             return null;
         }
     }
+
+    private static Node findLowestChild(Node n) {
+        if(n.left != null) return findLowestChild(n.left);
+        return n;
+    }
+
+ 
+    private static Node findSuccessor(Node n)
+    {
+        if (n == null)
+            return null;
+        
+        if (n.right != null)
+            return findLowestChild(n.right);
+        
+        Node y = n.parent;
+        Node x = n;
+        while (y != null && x == y.right)
+        {
+            x = y;
+            y = y.parent;
+        }
+        // Intuition: as we traverse left up the tree we traverse smaller values
+        // The first node on the right is the next larger number
+        return y;
+    }
+    
+    
+    private static Node findPredecessor(Node n)
+        {
+            if (n == null)
+                return null;
+
+            if (n.left != null)
+                return findHighestChild(n.left);
+
+            Node parent = n.parent;
+
+            Node y = parent;
+            Node x = n;
+            while (y != null && x == y.left)
+            {
+                x = y;
+                y = y.parent;
+            }
+
+            return y;
+        }
+
+    private static Node findHighestChild(Node n) {
+        if(n.right != null) return findHighestChild(n.right);
+        return n;
+    }
+    
     
 }

@@ -21,24 +21,24 @@ public class BinarySearchTree {
     static Node root = new Node();
     
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
+        Scanner scanner = new Scanner(System.in).useDelimiter("[,\\s+]");;
         
         System.out.println("Please enter the initial sequence of values");
-        
-        int count = 0;
-        while(scanner.hasNextInt()){
-            insert(new Integer(scanner.nextInt()),root);
-            count++;
-            if(count>=17) break;
+        String  lines = scanner.nextLine();    
+        String[] strs = lines.trim().split("\\s+");
+        for (int i = 0; i < strs.length; i++) {
+            insert(new Integer(strs[i]),root);
         }
-        
+
         allOrderPrint();
         boolean CONTINUE = true;
         while(CONTINUE){
             CONTINUE = commandLoop(scanner);
-            System.out.print("In-order: ");
-            if(root != null) printInOrder(root);
-            else System.out.println("Tree is empty ! (:");
+            if(root != null && CONTINUE) {
+                System.out.print("In-order: ");
+                printInOrder(root);
+            }
+            else if(CONTINUE) System.out.println("Tree is empty ! (:");
         }
     }
     
@@ -77,7 +77,8 @@ public class BinarySearchTree {
     private static boolean commandLoop(Scanner scan) {
        System.out.print("\nCommand? ");
        switch (scan.next()){
-           case "I": 
+           case "I":
+           case "i":
                if(scan.hasNextInt()){
                    Integer input = scan.nextInt();
                    //if the node for this number already exists, begone!
@@ -92,6 +93,7 @@ public class BinarySearchTree {
                }
                break;
            case "D":
+           case "d":
                if(scan.hasNextInt()){
                    Integer input = scan.nextInt();
                    if(findNode(input,root)== null){
@@ -102,28 +104,43 @@ public class BinarySearchTree {
                }
                break;
            case "P":
+           case "p":
                if(scan.hasNextInt()){
                    Integer input = scan.nextInt();
                    if(findNode(input,root)==null){
-                       System.out.println(input + "is not in the tree");
+                       System.out.println(input + " is not in the tree");
                        break;
                    }
-                   System.out.println("Predecessor is " +  findPredecessor(findNode(input,root)).data);
+                   Node p = findPredecessor(findNode(input,root));
+                   if (p != null) System.out.println("Predecessor is " +  p.data);
+                   else System.out.println("There is no predecessor! (:");
                }
                break;
            case "S":
+           case "s":
                if(scan.hasNextInt()){
                    Integer input = scan.nextInt();
                    if(findNode(input,root)==null){
-                       System.out.println(input + "is not in the tree");
+                       System.out.println(input + " is not in the tree");
                        break;
                    }
-                   System.out.println("Successor is " +  findSuccessor(findNode(input,root)).data);
-               }
+                   Node s = findSuccessor(findNode(input,root));
+                   if(s != null) System.out.println("Successor is " + s.data);
+                   else System.out.println("There is no successor! (:");
+                }
                break;
            case "E":
+           case "e":
                return false;
            case "H":
+           case "h":
+               System.out.print(
+                       "I  Insert a value\n"+
+                       "D  Delete a value\n"+
+                       "P  Find a predecessor\n"+
+                       "S  Find a successor\n"+
+                       "E  Exit the program\n"+
+                       "H  Display this message\n");
                break;
        }
        return true;
@@ -149,7 +166,7 @@ public class BinarySearchTree {
        if(toDelete.left !=null && toDelete.right!=null){
            //2 children
            Node lowestRight = findLowestChild(toDelete.right);
-           System.out.println("lowest right" + lowestRight.data);
+          
            if(lowestRight.right==null){
                
                
@@ -209,7 +226,7 @@ public class BinarySearchTree {
                 }
             }
        }else{
-           
+           //if we're trying to delete the root
            if(root==toDelete){
                System.out.println("deleted root!");
                root =null;
@@ -264,19 +281,15 @@ public class BinarySearchTree {
             x = y;
             y = y.parent;
         }
-        // Intuition: as we traverse left up the tree we traverse smaller values
-        // The first node on the right is the next larger number
+        
         return y;
     }
     
     
     private static Node findPredecessor(Node n)
         {
-            if (n == null)
-                return null;
-
-            if (n.left != null)
-                return findHighestChild(n.left);
+            if (n == null) return null;
+            if (n.left != null) return findHighestChild(n.left);
 
             Node parent = n.parent;
 
